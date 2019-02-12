@@ -1,0 +1,312 @@
+# Multiple-linear regression.
+
+**Created by Robin Cunningham, UNC Chapel Hill**
+
+**Modified by Jan Hannig, UNC Chapel Hill**
+
+***HOMEWORK 8 - Predicting Baby-weight***
+<br><br>
+A Multi-linear regression analysis. **Please compose all answers in this R-Markdown document**.
+<br><br>
+1. A file containing data on 1236 live births can be found at
+'https://drive.google.com/open?id=0B2lwGKhIFjYYbDY3eWVubEZzX28'. We will use this dataset to construct a multi-linear model for predicting birthweight from other variables.
+<br><br>
+a. Write and execute code to read the csv file 'babies.csv', assign it to the object 'babies' and summarize the variables.
+```{r, eval=TRUE}
+  babies = read.csv("babies.csv",header = TRUE)
+  head(babies)
+  summary(babies)
+```
+<br>
+b. As you can see, there are 8 variables and a fair number of missing data points. Remove all cases with missing data and assign the resulting data frame to 'bbycomp'.
+```{r, eval=TRUE}
+  bbycomp = na.omit(babies,)
+ 
+  head(bbycomp)
+
+```
+<br>
+c. A **Dataset Codebook** is a guide to what each of the variables represents. Note that for the purpose of this study, we will consider each variable to be numerical. Complete the comment box below to create a codebook for these data. Include units if you can figure them out.
+```
+Variables:
+i. Case - the number assigned to the mother
+ii. bwt - Babies weight in Ounces
+iii. gestation - This column represents the number of days it takes from conception to birth of each baby. 
+iv. parity - the number of preganancies a woman has that makes it to gestational age.pretty much has mother been preganant before. 
+v. age - Represents age of the mother in year. 
+vi. height - Height of the babies in centimeters
+vii. weight - the weight of the mother in pounds. 
+viii. smoke - The smoke column represents whether or not the parent smokes. represented in binary, 1's being yes and 0's no. 
+
+```
+<br>
+d.Do some exploratory analysis by looking at histograms of the 7 variables and plots of bwt versus each of the six explanatory variables. In the comment box below, make a note of any concerns. ***It will save some typing to assign the right variables to `Y, X1, ..., X6`, so I did that for you.***
+```{r, eval =TRUE}
+
+#Assign Short variable names
+Y  <- bbycomp$bwt
+X1 <- bbycomp$gestation
+X2 <- bbycomp$parity
+X3 <- bbycomp$age
+X4 <- bbycomp$height
+X5 <- bbycomp$weight
+X6 <- bbycomp$smoke
+
+#Histograms
+hist(Y,xlab="BWT",main= "Histogram of BWT", col = "violet")
+hist(X1,xlab="Gestation",main= "Histogram of Gestation", col = "blue")
+hist(X2,xlab="Parity",main= "Histogram of Parity", col = "red")
+hist(X3,xlab="Age",main= "Histogram of Age", col = "brown")
+hist(X4,xlab="Height",main= "Histogram of Height", col = "green")
+hist(X5,xlab="Weight",main= "Histogram of Weight", col = "black")
+hist(X6,xlab="Smoke",main= "Histogram of Smoke", col = "navy")
+
+#Plots of Y versus X_i
+
+plot(Y, X1, xlab= "BWT", ylab="Gestation", main="Plot of BWT vs. Gestation")
+plot(Y, X2, xlab= "Parity", ylab="Gestation", main="Plot of BWT vs. Parity")
+plot(Y, X3, xlab= "Age", ylab="Gestation", main="Plot of BWT vs. Age")
+plot(Y, X4, xlab= "Height", ylab="Gestation", main="Plot of BWT vs. Height")
+plot(Y, X5, xlab= "Weight", ylab="Gestation", main="Plot of BWT vs. Weight")
+plot(Y, X6, xlab= "Smoke", ylab="Gestation", main="Plot of BWT vs. Smoke")
+
+```
+```
+Comments:
+
+Histogram Observations: 
+
+>BWT appears to be a normal distribution, with the median lying around 120     Ounces. 
+>Height is roughy normal for babies, with average around 60-65 centimeters. 
+ Age and Weight are both skewed right.Age median aroudn 20-25 years and Weight >of mothers around 125. 
+>Average Gestation is ~260 days, or between 250-300 days. 
+>Parity is mostly 0 (>800 out of ~1100 observations) and most mothers do not   smoke(~700 out of ~1100 observations). 
+
+Plots: 
+
+>Both plots for Smoking and Parity are two lines focused around 0 and 1 which is expected. This is a good indicator that BWT and Smoke are not correlated with BWT.   
+>the plot of BWT vs Gestation looks almost horizontal but slightly linear and appears to be random. Possible indicator that Gestation may not be correlated with BWT, further investigation needed. 
+>The scatterplots of Height and Age are scattered and random.No dense clusters anywhere
+> Weight has a dense cluster around 120 with a Gestation of ~120.
+
+```
+<br>
+e. Run the full model using all of the other variables (besides Case) to explain Birthweight (bwt). Store the model as `full.lm` and create a summary of the model.
+```{r, eval=TRUE}
+full.lm = lm(Y ~ X1 + X2 + X3 + X4 +X5 + X6, data=bbycomp)   
+summary(full.lm)
+
+anova(full.lm)
+      
+```
+<br>
+f. Use the summary to conduct an ANOVA test to see if at least one of the coefficients is significantly different from zero. State the results in the comment box below.
+```
+X1: F-Value 261.2078 which is very high; P-Value < 2.2e-16 very significant. Reject Null
+
+X2: F-Value 9.3578 which is relatively high; P-Value 0.002271 is significant enought to Reject Null
+
+X3: F-Value 0.8627 which is low; P-Value 0.353179 not significant. Fail to reject Null
+
+X4: F-Value 49.9594 which is very high; P-Value < 2.2e-16 very significant. Reject Null
+
+X5: F-Value 6.7187 which is relatively high; P-Value 0.009660 significant enough to Reject Null
+
+X6: F-Value 77.5713 which is very high; P-Value < 2.2e-16 very significant. Reject Null
+
+
+```
+g. Now perform backward elimination in the following manner: First, eliminate the predictor whose removal causes the greatest improvement in adjusted R-squared. Continue in this manner until removing any remaining predictors causes Adjusted R-squared to fall. <br>
+Begin by finding the 5-predictor model that increases adjusted R-squared by the most. Include the model and summary in the codebox below.
+```{r, eval=TRUE}
+rm_X3.lm = lm(Y ~ X1 + X2 + X4 +X5 + X6, data=bbycomp)   
+summary(rm_X3.lm)
+
+#Adj. R-Squared
+#No- 0.2541 ** 
+#X1- 0.1061 
+#X2- 0.2492 
+#X3- 0.2548 * 
+#X4- 0.2345
+#X5- 0.2523
+#X6- 0.2052
+
+
+
+```
+<br>
+h. Should we stick with the 6-predictor model or continue? Explain.
+```
+We should stick with 5-predictor model, since the adjusted R-Squared value increased from 0.2541 to 0.2548 from the 6-predictor to removing X3 in the 5-predictor. The increase in Adjusted R-Squared is a good indicator that X# predictor did not help the linear model prediction. 
+```
+<br>
+i. Now find the best 4-variable model using the same criterion and include it in the code box below. Include a summary of the model.
+```{r, eval=TRUE}
+rm_x3_x5.lm = lm(Y ~ X1+ X2 + X4 + X6 , data=bbycomp)   
+summary(rm_x3_x5.lm)
+
+#Adj. R-Squared
+
+#5 value: 0.2548 
+#X1 & X3- 0.1066
+#X2 & X3- 0.2493
+#X3 & X4- 0.2351
+#X3 & X5- 0.2529 *
+#X3 & X6- 0.2058
+
+#X1 & X2- 0.1043 
+#X1 & X4- 0.07933
+#X1 & X5- 0.1043
+#X1 & X6- 0.04573
+#X4 & X5- 0.2192
+#X4 & X6- 0.1887
+#X5 & X6- 0.2016
+#X2 & X4- 0.231
+#X2 & X5- 0.2467
+#X2 & X6- 0.2015
+
+```
+<br>
+j. According to the Adj. R-squared criterion, should we stick with 5-predictors or continue? Explain.
+```
+We should stick with the 5 predictor model since removing two of any combination of X1,X2,X3,X4,X5,X6 only reduced the Adjusted R-Squared value. The highest value was 0.2529 which is lower than teh 5-Predictor. 
+```
+***Note: even though our criterion says to stick with 5 predictors, I would seriously consider dropping X5 anyway, because the p-value is very close to 0.05 and we have lots of predictors. (Think about why having lots of predictors matters for this!) Also, the value of Adjusted R-squared is only reduced slightly and a parsimonious model is easier to understand and more robust for predictions***
+k. Using the best 5-predictor model that you found, find a 95% confidence interval for the average birthweight among all babies for which (gestation, parity, age, height, weight, smoke) = (290, 1, 22, 60, 110, 0). (One line of code will do it.)
+```{r, eval= TRUE}
+five_predict = data.frame(X1=290,X2=1,X4=60,X5=110,X6=0)
+predict(rm_X3.lm, five_predict, interval="confidence")
+
+```
+<br>
+l. Using the best 5-predictor model that you found, find a 95% confidence interval for the birthweight of the next baby for which (gestation, parity, age, height, weight, smoke) = (290, 1, 22, 60, 110, 0). (Again, don't make it hard ... one line.)
+```{r, eval= TRUE}
+predict(rm_X3.lm, five_predict, interval="prediction")
+```
+<br>
+m. In plain English, interpret the coefficients in the least squares model for `height` and `smoke`.
+```
+The coefficient height and smoke are both slopes that essentially predict how much BWT will changing when either height or smoke increase or decrease.
+```
+<br><br>
+2. Run diagnostics on the final 5-predictor model you selected. Include appropriate residual plots and your comments on the quality and usefulness of the fit. (Make your own codeboxes and comment boxes.)
+
+```{r, eval =TRUE}
+
+plot(rm_X3.lm)
+
+```
+
+```
+The fitted values generated by the linear prediction does fit well into the resdiual plots. The Residuals differ by alot in the residual vs fitted plot and the graph of the residual in not very symmetric. The QQ plot seems pretty linear, which suggests that the data came from a normal distribution and is good quality. While the QQ plot is fairly linear, the low R-Squared value of the 5-predictor and the poor residual plot suggest that the fit of the data is not great.
+```
+
+<br><br>
+
+
+3. In the plots you created before doing any regressions, there were apparent outliers with regard to both X1 and X4. Without doing the work, say what steps you would take to evaluate whether we should consider removing these outliers. (Your own comment box.)
+
+```
+review the plot() of the regression and see which values appear to be outliers in the QQ and residual. Then create a subset of the data removing those outliers. 
+
+Could also conduct t-tests to check if outlier is significant from the majority of the data. 
+
+
+```
+<br><br>
+
+
+
+4. Using `Forward Addition`, choose a "best" multilinear model for this data set. Begin by choosing the single predictor that gives the highest value of Adjusted R-squared and continue by adding variables until Adjusted R-squared has been maximized. ***Your answer should consist of a set of nested models with increasing Adjusted R-squared***
+
+```{r,eval=TRUE}
+#X1- 0.1654 *
+#X2- 0.001076
+#X3- -0.0001245
+#X4- 0.04068
+#X5- 0.02348
+#x6- 0.06011
+
+x1.lm <- lm(Y ~  X1, data=bbycomp)   
+summary(x1.lm)
+
+```
+
+```{r,eval=TRUE}
+#0.1654 
+#X2- 0.1706
+#X3- 0.1671
+#X4- 0.1955
+#X5- 0.1861
+#x6- 0.2143 *
+
+
+x1_6.lm <- lm(Y ~  X1 + X6, data=bbycomp)   
+summary(x1_6.lm)
+```
+
+```{r,eval=TRUE}
+#0.2143
+
+#X2- 0.2198
+#X3- 0.2147
+#X4- 0.2463 *
+#X5- 0.2315
+
+x1_6_4.lm <- lm(Y ~  X1 + X6 + X4, data=bbycomp)   
+summary(x1_6_4.lm)
+```
+
+```{r,eval=TRUE}
+
+#0.2463
+
+#X2- 0.2529 *
+#X3- 0.2467
+#X5- 0.2493
+
+x1_6_4_2.lm <- lm(Y ~  X1 + X6 + X4 + X2, data=bbycomp)   
+summary(x1_6_4_2.lm)
+```
+
+```{r,eval=TRUE}
+x1_6_4_2_5.lm <- lm(Y ~  X1 + X6 + X4 + X2 + X5, data=bbycomp)   
+summary(x1_6_4_2_5.lm)
+```
+
+
+
+<br><br>
+
+
+5. For the sequence of nested models above, conduct an ANOVA test comparing each model to the previous, reduced model to see if the new coefficient is statistically different from zero compared to the reduced model. Show the code for each test and state the results.
+
+```{r,eval=TRUE}
+
+anova(x1.lm,x1_6.lm)
+
+anova(x1_6.lm,x1_6_4.lm)
+
+anova(x1_6_4.lm,x1_6_4_2.lm)
+
+anova(x1_6_4_2.lm,x1_6_4_2_5.lm)
+
+
+```
+```
+The ANOVA of X1.lm and x1_6.lm had the smallest p value out of all the anova comparisons(2.2e-16 vs 1.963e-12 &0.0007662 &0.04672). ANOVA of the first comparisons closest to 0.
+```
+
+<br><br>
+6. Would considering some interactions make sense? Try to add some interactions to the best models and see what happens.
+
+```{r,eval=TRUE} 
+mult.own <- lm(formula = Y ~ parity+height+(gestation+smoke)^2, data = bbycomp)
+
+summary(mult.own)
+```
+
+```
+I created an interaction between gestation and smoking with the ^ symbol. The coefficients now included were gestation:smoke along with smoke and gestation. All of the p-values were highly significant for the predictors including gestation:smoke with a vlaue of 0.000370. This shows that there is evidence that the interaction does play an effect on the data. In addition, the Adjusted R-Square Value increased to .2603, which further suggestst that the inclusion of the interaction had an effect on the data.
+```
+

@@ -1,0 +1,45 @@
+---
+title: "Box Cox Example"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Chicks
+
+Thus data is available in the package datasets
+```{r datasets}
+summary(ChickWeight)
+```
+
+Let us analyze the data first
+
+```{r}
+summary(ChickWeight)
+lm_fit1=lm(weight~Time+Diet,data=ChickWeight)
+summary(lm_fit1)
+plot(lm_fit1)
+```
+
+Notice heterohgeneity of variance. Try transformations
+
+```{r}
+require('MASS')
+out=boxcox(lm_fit1,lambda=seq(-2,2,1/100))
+out$x[which(out$y==max(out$y))]
+```
+
+We can try log transformation $\lambda=0$ 
+```{r}
+lm_fit2=lm(log(weight)~Time+Diet,data=ChickWeight)
+summary(lm_fit2)
+plot(lm_fit2)
+```
+or even $\lambda=-.19$.
+```{r}
+lm_fit3=lm(weight^(-.19)~Time+Diet,data=ChickWeight)
+summary(lm_fit3)
+plot(lm_fit3)
+```

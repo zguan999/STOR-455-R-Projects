@@ -1,0 +1,199 @@
+---
+title: "Diamonds Project"
+author: "Zachary Guan"
+date: "November 15, 2018"
+output: html_document
+---
+
+A detailed anaylsis of the effects of different diamond characteristics on pricing of diamonds. 
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r, eval=TRUE}
+diamonds <- read.delim("us.carata.txt")
+
+summary(diamonds)
+```
+
+
+
+
+
+
+## Including Plots
+
+including simple histograms of each category of diamonds
+
+```{r}
+for(i in 1:ncol(diamonds)){
+  par(ask = TRUE)
+  plot(diamonds[,i], xlab = names(diamonds)[i],)
+}
+hist(diamonds$carat)
+```
+
+Now plotting each variable against price to look for observable correlation or patterns
+##weighted least squares or boxcox
+```{r}
+
+plot(diamonds$carat,diamonds$price, xlab = "Carat",ylab ="Price", main="Carat vs. Price", pch = 4, cex = .80, col = "red")
+plot(diamonds$color,diamonds$price, xlab = "Color",ylab ="Price", main="Color vs. Price", pch = 4, cex = .80, col = "cyan")
+plot(diamonds$clarity,diamonds$price, xlab = "Clarity",ylab ="Price", main="Clarity vs. Price", pch = 4, cex = .80)
+plot(diamonds$certification,diamonds$price, xlab = "Certification",ylab ="Price", main="Certification vs. Price", pch = 4, cex = .80, col = "brown")
+
+
+```
+```
+definitely seeing some strange data, as most of the diamonds data is categorical, so the scatterplot of prices vs. categorical data seems linear. Carat vs Price is the only data that is numerical, and the plot appears to be exponential almost. Point of concern as linear model may not fit well. In addition certification and clarity seem to have some strange data; in terms of clarity, the best clarity has the lowest price which is a sign of concern. IN addition the certification bodies had very variable means, as IGI has diamonds less than 1000 compared to HRD with a mean price of $4000. 
+```
+
+
+Now attempting to experiment with linear regression 
+
+
+```{r, eval=TRUE}
+all <- lm(price~carat + color  + certification + clarity,data =diamonds )
+carat <- lm(price~ carat, data = diamonds)
+color <- lm(price~color, data = diamonds)
+
+summary(all)
+```
+
+
+```{r}
+summary(carat)
+```
+
+```{r}
+summary(color)
+
+```
+
+testing out some interactions. anaylsis has shown interactions with certification are not very significant. 
+```{r, eval= TRUE}
+
+interaction_cert <- lm(price~carat*certification + color + clarity, data = diamonds)
+
+int_<-lm(price~ carat + color:certification + clarity, data = diamonds)
+
+int_ccl <- lm(price ~ carat + color + clarity:certification, data= diamonds)
+
+int_carlt <-lm(price ~ carat:clarity + color, data = diamonds)
+
+summary(interaction_cert)
+summary(int_)
+summary(int_ccl)
+summary(int_carlt)
+
+```
+
+
+regsubsets is essentially an automated function of the forward selection I calculated below. This is just another measure to ensure the full model selected is a good fit for the diamond data. The two factors used to check the fit of the model were: Mallow's Cp and Adjusted R-Squared. Decided that certification was not a good fit for the data based off the anova and the plots from regsubsets. created an interaction between carat and clarity and r-squared is promising. As calarity is not significant when conducted with as.numeric(), therefore interaction was used since clarity and carat have some affects on each other. Using contrasts is tricky, as we cannot conduct any linear trends or deduce which factor is signifcant. 
+
+
+
+```{r}
+require(leaps)
+
+regset = regsubsets(price ~ certification + color + carat + clarity, data = diamonds, method = "forward")
+
+plot(regset,scale="adjr2")
+
+
+###model added interaction between color and carat. Did this based off the boxplot,since the relationship between color and price was pretty random
+subset_model1<-lm(price~carat+clarity + color, data = diamonds)
+subset_model<-lm(price~carat+clarity + color+certification, data = diamonds)
+
+anova(subset_model1,subset_model)
+
+
+summary(subset_model)
+
+
+plot(subset_model)
+
+
+
+```
+
+
+Forward Selection of predictors is done manually here. Just playing around with the predictors to see if any of the predictors increase the adjusted R-Squared. Debating whether or not to map color, clarity and certification as a numeric(refactor?). the addition of the interaction seemed to increase the p-values for all predictor signifcantly. the inclusion of certification is not that significant, as the comparison in the anova showed significance but not highly significant. choice to remove certification 
+
+anova conducted, removing certification doesn't affect anova p-values very much, therefore removing certification from the final model. 
+
+```{r, eval= TRUE}
+v1<-lm(price~carat, data = diamonds)
+v2<-lm(price~carat +color, data = diamonds)
+v3<-lm(price~carat +color+ certification, data= diamonds)
+full_model<-lm(price~carat + color+ certification + clarity, data= diamonds)
+
+
+pred<-predict(full_model)
+summary(v1)
+summary(v2)
+summary(v3)
+summary(full_model)
+
+
+
+
+
+```
+
+
+
+
+Revising the model 
+```{r}
+require(car)
+revised_model<-lm(price~carat:clarity + color + certification,contrasts = list(color = contr.treatment(n = 6, base =6)), data = diamonds)
+rev_mod <-lm(price~carat:clarity + color:carat, data = diamonds)
+mod1<-lm(price~ carat:clarity + color+ certification,contrasts = list(certification = contr.treatment(n = 3, base =2)) , data = diamonds)
+
+summary(rev_mod)
+summary(mod1)
+summary(revised_model)
+anova(mod1)
+vif(revised_model)
+vif(rev_mod)
+```
+
+
+check if the current final model is good; evident that final linear model is still not a great fit. Residual has a distinct pattern, therefore assume non-linear regression needed. The The residual had very big variance towards large diamonds and the residual was non-linear, two important observations. Y needs to be adjusted. 
+
+```{r, eval=TRUE}
+require(car)
+plot(revised_model)
+
+vif(revised_model)
+
+```
+att a nonlinear term to something(carat maybe)
+
+from here going to use boxCox to try and determine a way to normalize our price response, since the response data looks very exponential . The lambda value suggested was .41 . VIF for the transformed non-linear model looks good, all values are under 5 which tells us that collinearity is not at play. This is the final model!
+
+```{r}
+require(MASS)
+require(car)
+data=boxcox(revised_model,lambda=seq(-2,2,1/100))
+data$x[which(data$y==max(data$y))]
+
+
+#transformed data 
+
+non_linmodel=lm(price^(.41)~ color+certification+carat:clarity, contrasts = list(color = contr.treatment(n = 6, base =6)), data=diamonds)
+summary(non_linmodel)
+plot(non_linmodel)
+
+anova(non_linmodel)
+vif(non_linmodel)
+
+```
+
+
+
+

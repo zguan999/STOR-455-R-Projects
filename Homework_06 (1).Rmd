@@ -1,0 +1,61 @@
+# Matrices in R
+**Created by John Palowitch, UNC Chapel Hill**
+
+**Edited by Jan Hannig, UNC Chapel Hill**
+
+
+### Conceptual Questions 
+Please read the document ***Matrices in R.docx*** before completing this assignment. This assignment has two goals:
+
+-Learning new commands in R from a written source.
+
+-Using R for Matrix Calculations
+<br><br>
+1. Suppose:
+\[
+\mathbf{A} = \begin{bmatrix}2&3&4&5\\-1&0&3&2\end{bmatrix},\;\;\;\;\mathbf{B} = \begin{bmatrix}4&-1&10&0\\-2&-2&5&6\end{bmatrix}
+\]
+\[
+\mathbf{a} = \begin{bmatrix}6&2&-11&1\end{bmatrix},\;\;\;\;\mathbf{b} = \begin{bmatrix}4\\2\\3\\0\end{bmatrix},\;\;\;\;\mathbf{c} = \begin{bmatrix}-3\\-10\end{bmatrix}
+\]
+    a. Write down the dimensions of the following (you can use a comment box that you create). If the operation is not possible, write "N.P."
+        i. $\mathbf{A}^T\mathbf{B}$   4X4 (first one done for you!)
+        ii. $\mathbf{B}\mathbf{A}^T$
+        iii. $\mathbf{A}\mathbf{B}$
+        iv. $\mathbf{A}^T\mathbf{A}$
+        v. $\mathbf{b}^T\mathbf{A}$
+        vi. $\mathbf{a}\mathbf{A}^T$
+        vii. $\mathbf{B}\mathbf{b}$
+        viii. $\mathbf{B}\mathbf{c}^T$
+        ix. $\mathbf{a}\mathbf{c}$
+        x. $\mathbf{b}\mathbf{a}$
+    b. Again, write down the dimensions of the following (on this sheet, next to the expression). If the operation is not possible, write "N.P."
+        i. $(\mathbf{A}^T\mathbf{B})^{-1}\mathbf{a}$
+        ii. $\mathbf{c}(\mathbf{B}\mathbf{A}^T)^{-1}$
+        iii. $(\mathbf{B}^T\mathbf{B})^{-1}\mathbf{B}^T\mathbf{c}$
+        iv. $\mathbf{b}^T\mathbf{A}^T\mathbf{c}$
+        v. $(\mathbf{B}\mathbf{B}^T)^{-1}\mathbf{B}\mathbf{b}$
+      
+        
+### Applied Questions 
+2. In a code block below, create and print the following matrices and vectors:
+\[
+\mathbf{A} = \begin{bmatrix}-6&0&1\\1&10&7.5\end{bmatrix},\;\;\;\;\mathbf{B} = \begin{bmatrix}-15&1&1\\5.25&1&2.5\end{bmatrix}
+\]
+\[
+\mathbf{a} = \begin{bmatrix}6&2&1\end{bmatrix},\;\;\;\;\mathbf{b} = \begin{bmatrix}2\\-7\end{bmatrix}
+\]
+
+3. Compute (with **R**, in a new code block below) and print the following products:
+    a. $\mathbf{A}^T\mathbf{B}$
+    b. $\mathbf{B}\mathbf{a}^T$
+    c. $\mathbf{b}^T\mathbf{A}$
+    d. $\mathbf{A}^T\mathbf{b}$
+    e. $\mathbf{a}^T\mathbf{a}$
+    f. $\mathbf{a}\mathbf{a}^T$
+    g. $(\mathbf{A}^T\mathbf{A})^{-1}$
+    h. $(\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T\mathbf{b}$
+    i. $\mathbf{b}^T\mathbf{A}\mathbf{a}^T$
+    j. $\mathbf{a}\mathbf{B}\mathbf{A}^T\mathbf{b}$
+
+

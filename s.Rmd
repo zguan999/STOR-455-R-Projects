@@ -1,0 +1,15 @@
+x = c(1,2,3,4,6)
+y=c(3,6,5,8,13)
+
+Sum of Square Error
+sxy=sum((x-x_bar)*(y-y_bar))
+ssx=sum((x-x_bar)^2)
+b1=sxy/sxx
+b1
+
+b0=y_bar-b1*x_bar
+b0
+
+plot(x,y)
+lines(x,b0+b1*x)
+lines(x,2*x,col="blue")

@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+##Assignment 2
+
+Model #1: Use Age as a predictor for Price
+
+```{r}
+library(readr)
+UsedCarLot <- read_csv("C:/Users/zguan/Downloads/UsedCarLot.csv")
+View(UsedCarLot)
+head(UsedCarLot, n=100)
+```
+
+```{r}
+library(dplyr)
+set.seed(500) #Enter any number here
+BMWCar = sample_n(subset(UsedCarLot, model=="328"), 40)
+BMWCar$Age = 2019-BMWCar$year
+plot(price~Age, data = BMWCar)
+mod1 = lm(price~Age, data = BMWCar)
+```
+##1.
+
+Equation: To find the equation of the least squares line, we will use the format of $ln(price) = \beta_0 + \beta_1*log(year)$. Using R, we can find the coefficients and Intercept.
+
+```{r}
+mod1 = lm(formula = price ~ Age, data = BMWCar)
+print(mod1)
+```
+The equation is $Price = 40.967 - 3.178*Age$
+
+
+##2. 
+```{r}
+plot(price~Age, data = BMWCar)
+mod1 = lm(price~Age, data = BMWCar)
+abline(mod1)
+```
+
+##3. Residuals Plot: Produce appropriate residual plots and comment on how well your data appear to fit the conditions for a simple linear model. Don't worry about doing transformations at this point if there are problems with the conditions.
+
+```{r}
+plot(mod1$residuals ~ mod1$fitted.values)
+abline(0,0)
+```
+
+In the residuals for the price and age of the car, the linear model does not seem to be an appropriate fit for simple linear model. It is not randomly dispersed and has a clear pattern. 
+
+```{r}
+resid(mod1)
+```
+
+##4. 
+```{r}
+summary(mod1)
+
+resMod = subset(BMWCar, mod1$residuals == max(abs(mod1$residuals)))
+
+```
+
+Max residual by magnitude is 8.34154 at point 10, which is a car that is a four year old BMW from 2015, with 24,779 miles and has a value of around $36,600. 
+
+```{r}
+match(c(36.6), UsedCarLot$price)
+rstandard(mod1)[10]
+rstudent(mod1)[10]
+
+```
+
+##5. 
+```{r}
+confint(mod1, level = 0.9)
+
+test<-lm(BMWCar$price~BMWCar$Age)
+summary(test)
+```
+
+We can be 90% confident that the true percentage of all BMW cars 

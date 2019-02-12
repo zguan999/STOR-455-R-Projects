@@ -1,0 +1,242 @@
+---
+title: 'Case Study 1: College Basketball'
+author: "prepared by Kelly Bodwin"
+output: html_document
+---
+
+In this Case Study, you will refresh your memory of STOR 155 while you learn some basic commands and tools for analyzing data with **R**.  We'll be looking at some data from college basketball games last year.
+
+Run the following **R** code to load the data into your RStudio and take a look at it.
+
+## Summarizing data
+
+```{r, eval = TRUE}
+# Load dataset
+bball = read.csv("http://kbodwin.web.unc.edu/files/2016/06/basketball.csv")
+
+# Look at dataset
+head(bball)
+#summary(bball)
+ncol(bball)
+nrow(bball)
+
+```
+
+The command `read.csv( )` will read a dataset into R from your computer or from online.  "csv" stands for "comma separated value", a common file type where the data is listed in a text file, with variables separated by commas.  For now, you don't need to worry about the details of `read.csv( )`.  Once you have loaded the data, the command `summary( )` will tell you about the variables in the dataset and their values.  Another useful function is `head( )`, which shows you the first 6 rows of the dataset.
+
+***
+
+
+
+### Question 6:
+
+a) As you may have noticed, the dataset `bball` actually displays each game twice: once for each team.  Make a new dataset with each game listed only once by subsetting `bball`.
+```{r, eval = TRUE}
+
+no_repeat = bball[bball$Team.Result == "Win",]
+
+
+
+```
+
+b) On Feb 17, 2016, UNC played Duke.  Using the Normal distribution, what percent of games have higher scores than the UNC/Duke game?  (Assume that the mean and standard deviation of `Team.Score` are actually the *population* mean and standard deviation.)  
+```{r, eval = FALSE}
+unc = bball[bball$Date == "2/17/16" & bball$Team == "North Carolina", ]
+
+unc$Total.Score
+
+mean_games = mean(no_repeat$Total.Score)
+sd_games = sd(no_repeat$Total.Score)
+
+pnorm(unc$Total.Score,mean_games,sd_games, lower.tail =FALSE)
+```
+
+c) What percentage of games in the dataset did we observe to be higher scoring than the UNC/Duke game?  The functions `sum( )` and `length( )` will help you answer this question.
+
+```{r, eval = FALSE}
+total_ppl= length(no_repeat$Total.Score)
+score_high= sum(unc$Total.Score > no_repeat$Total.Score)
+percent = 1- (score_high/total_ppl)
+percent
+```
+
+d)  What is the difference between what we did in (b) and (c)?  Do you think the Normal approximation is reasonable for this data?  Why or why not?
+```
+b uses the cumulative function and takes a summation of all the probabilites above the sample mean to calculate the percentage of scores higher than that game whereas c goes through the code to actually find how many games unc/duke scored higher than everyone else and divides by the total number of all games played subtracted by 1 to get a percent value. 
+
+```
+
+***
+
+Recall that *t-scores* are used instead of *z-scores* when the population standard deviation is unknown.  The functions `pt` and `qt` work almost same way as `pnorm` and `qnorm`, but for the t-distribution instead of the Normal.  However, be careful, and read `?pt` for help!  These functions don't let you enter the mean and standard deviation as input - you need to figure out what do about that!
+
+***
+
+### Question 7:
+Use all your new **R** skills to answer this question: Was the Feb 17th game between UNC and Duke particularly high scoring *for a UNC game*?
+
+```{r, eval = FALSE}
+
+unc_subset = bball[bball$Team == "North Carolina",]
+unc_mean = mean(unc_subset$Total.Score)
+unc_sd = sd(unc_subset$Total.Score)
+
+unc_pnorm = pnorm(unc$Total.Score,unc_mean,unc_sd,lower.tail = FALSE)
+unc_pnorm
+
+"Based on the pnorm value, this game was not a particularly high scoring game since the 62.23% games were higher than the score of that UNC/Duke game"
+```
+
+***
+
+## Confidence Intervals and Proportions
+
+You now have all the **R** knowledge you need to make some confidence intervals!  You may wish to go over your lecture notes for this section, especially to remind yourself how to deal with proportions.
+
+***
+
+### Question 8:
+
+a) Make a 95% confidence interval for the number of points UNC scores in a given game.  You will need to think about which **R** commands will give you critical values of the *t*-distribution, and how to use these to make a confidence interval.
+
+```{r, eval = TRUE}
+unc_subset = bball[bball$Team == "North Carolina",]
+
+
+unc_ind_sd = sd(unc_subset$Team.Score)
+unc_ind_mean = mean(unc_subset$Team.Score)
+
+
+t_star = qt(.975, df = length(unc_subset) -1,)
+
+error = t_star*(unc_ind_sd)/sqrt(length(unc_subset))
+
+
+lower_unc = unc_ind_mean - error
+upper_unc = unc_ind_mean + error 
+
+lower_unc
+upper_unc
+
+```
+
+b) What percentage of games did UNC win in 2015-2016?  Make a 95% confidence interval for their win percentage.
+
+
+```{r, eval = TRUE}
+z = qt(.975,df = length(unc_subset)-1,)
+
+unc_win = length(which(unc_subset$Team.Result == "Win"))
+total_unc = length(unc_subset$Team.Result)
+unc_percent = unc_win/total_unc
+
+MOE = sqrt((unc_percent*(1-unc_percent))/unc_win)*z
+
+upper_percent = unc_percent+MOE
+lower_percent = unc_percent-MOE
+
+lower_percent
+upper_percent
+
+```
+***
+
+## Hypothesis Testing
+
+You have now had lots of practice learning to use a function by reading the documentation.  Part of the point of this course is for you to become familiar enough with **R** to learn new commands and functions without being shown how to use them.  This will make you a skillful (and hireable!) programmer in the future.
+
+Check out `?t.test` and `?prop.test`.  Figure out what these functions do, what input they take, etc. Then answer the following questions.
+
+***
+
+### Question 9:
+
+a) Does UNC tend to win more games than they lose?  That is, is there evidence at the 0.05 level that the "true" probability of UNC winning a given game in 2015-2016 is larger than 0.5?
+
+```{r, eval = TRUE}
+unc_win = length(which(unc_subset$Team.Result == "Win"))
+total_unc = length(unc_subset$Team.Result)
+
+prop.test(unc_win,total_unc,p=.5,alternative="greater",correct=FALSE)
+
+"Based on the p-value of 8.066e-05, the value is significant enough to reject the null-hypothesis. Therefore UNC tended to win more games than they lost"
+
+
+```
+
+b) Based on how many points they tend to score in a game, would you say UNC and Yale were equally good teams? 
+
+```{r, eval = TRUE}
+unc_games = bball[bball$Team == "North Carolina",]
+yale_games = bball[bball$Team == "Yale",]
+unc_scores = unc_games$Team.Score
+yale_scores = yale_games$Team.Score
+
+t.test(unc_scores,yale_scores, alternative = "two.sided",var.equal =FALSE)
+
+"based on the p-value of 0.01611, there is evidence that the p-value is signifcant enough to conclude that one team is better than the other
+based on scoring"
+```
+```
+
+```
+
+c) Based on win percentage, would you say UNC and Yale were equally good teams?  Discuss this result and the result in (b).
+
+```{r, eval = TRUE}
+yale_games = bball[bball$Team == "Yale",]
+yale.won = sum(yale_games$Team.Result == "Win")
+unc.won = sum(unc_subset$Team.Result == "Win")
+n = nrow(unc_subset)
+n2 = nrow(yale_games)
+
+prop.test(c(unc.won, yale.won), c(n, n2))
+
+
+"Both teams are equally good teams, as the p-value of .9585 is too high to reject the null. Cannot determine if one team is better than the other"
+```
+```
+```
+
+***
+## Comparing multiple means (Analysis of Variance)
+
+What if we want to compare more than one team? In lecture, you learned about using an Analysis of Variance (ANOVA) F-test to check if more than two means are equal.  We will use the function `aov( )` to find out if the big three North Carolina teams - UNC, Duke, and NC State - all tend to score the same number of points.
+
+***
+### Question 10
+a) Make a dataset called `nc_games` that includes only games for the North Carolina teams, and then alter the code below to create a box plot of the scores for the three North Carolina teams.  Does it look like any of the means are significantly different?
+
+```{r, eval = TRUE}
+nc_games = bball[bball$Team =="North Carolina State",]
+unc_games = bball[bball$Team == "North Carolina",]
+duke_games = bball[bball$Team == "Duke",]
+names <- c("North Carolina State", "North Carolina", "Duke")
+
+boxplot(nc_games$Team.Score,unc_games$Team.Score,duke_games$Team.Score, names = names,xlab ="Teams",ylab = "Scores", main = "Box plot of North Carolina Team's Scores", col = c("red", "lightblue","blue"))
+
+
+"Based on the boxplots, the Mean score of NC State is much lower than UNC and Duke's Scores. UNC and Duke have similar mean scores but UNC is slightly higher"
+
+
+
+
+```
+
+b) Perform an ANOVA F-test on the means.  Interpret the output.  Is there evidence that the average scores of the three teams are not all equal?
+
+```{r, eval = TRUE}
+all_teams = bball[bball$Team =="North Carolina State" | bball$Team == "North Carolina" | bball$Team == "Duke",]
+anova=aov(all_teams$Team.Score~all_teams$Team)
+
+summary(anova)
+
+
+"Based on the p-value of the data(0.0284), the p-value is significant enough to reject the null. We can then conclude that the average scores of at least one of the three teams are not equal"
+
+```
+
+```
+```
+
+***

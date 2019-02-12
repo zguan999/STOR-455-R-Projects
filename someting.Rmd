@@ -1,0 +1,19 @@
+---
+title: "wfe"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r , eval = TRUE}
+
+= read.csv(https://sakai.unc.edu/access/content/group/2599dae9-698e-4f02-8515-0d6ec8d060aa/Datasets/pop1.csv)
+
+
+```
+
+
